@@ -90,7 +90,7 @@ void printConfidences() {
     return;
   }
 
-  ofstream out(resultfile);
+  std::ofstream out(resultfile);
   int nclasses;
   nclasses = confidence_list.begin()->second->size();
   out<<"Filename,";
