@@ -76,7 +76,7 @@ public:
    * @param  class Instance of Class object to use for the computation.
    * @return       Score correlated to probability of class membership.
    */
-  void computeClassificationNumerator(Class<int>* cls);
+  double computeClassificationNumerator(Class<int>* cls);
 
   /**
    * Gets the character located at position "pos" in the DNA sequence.
@@ -90,6 +90,9 @@ public:
    * @return     The path to the FASTA file.
    */
   string& getSequence();
+
+  // MARKED_NEW
+  void setSequence(string &seq);
 
   /**
    * Obtains a priority queue populated with class-probability pairs.
@@ -116,10 +119,20 @@ public:
    */
   unordered_map<int, int>& getKmerCounts();
 
+  /** MARKED NEW
+   *
+   *
+   */
+  void setKmerCounts(unordered_map<int, int>* _kmer_counts);
+
+  void resetKmerCounts();
+
   /**
    * When the STORE_ALL_NUMERATORS flag is false, returns the highest ranked class.
    */
   score getMaximum();
+
+  pqueue& getNumerator();
 
   static bool STORE_ALL_NUMERATORS;
 protected:
@@ -136,6 +149,7 @@ protected:
 
   double maximumNumerator;
   Class<int>* maximumNumeratorClass = NULL;
+  
 };
 
 #include "Class.hpp"

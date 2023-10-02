@@ -19,6 +19,8 @@
 #include <cassert>
 #include <cstring>
 #include <boost/filesystem.hpp>
+#include <stdio.h>
+#include <sys/resource.h>
 using namespace boost::filesystem;
 using namespace std;
 
@@ -50,7 +52,7 @@ public:
      * @return The serialized data of this class, typically contained in
      *         a savefile.
      */
-    string serialize();
+    void serialize(std::ofstream& out);
 
     /**
      * Reads a savefile and reconstructs a class from machine-readable format.
@@ -142,13 +144,29 @@ public:
      */
     bool loaded();
 
+    /** MARKED-NEW
+    * return the sum of the size of the <class> object and the total bytes of its 
+    * unordered_map objects.
+    * @return     The total bytes of a class object.
+    */
+    size_t getClassSizeInBytes();
+
+    /** MARKED-NEW
+     * return the sum of the size of the <class> object and the total bytes of its 
+     * unordered_map objects.
+     * @return     The total bytes of a class object.
+     */
+    static size_t getEstimatedClassBytes(size_t& num_elements);
+
+    static size_t getMapElementSize();
+
 protected:
   bool isLoaded = false;
   string id;
   path savefile;
   vector<Genome*> genomes;
   queue<Genome*> queuedGenomes;
-
+    
   typedef pair<double, bool> double_wflag;
 
   // Log data cached for classifying
@@ -174,10 +192,11 @@ protected:
   static uint64_t serializeDouble(double value);
   static double deserializeDouble(uint64_t value);
   static double logAdd(vector<double> exponents);
+
 };
 
-template <class T>
-ostream& operator<<(ostream& out, Class<T>& cls);
+// template <class T>
+// ostream& operator<<(ostream& out, Class<T>& cls);
 
 #include "Class.cpp"
 

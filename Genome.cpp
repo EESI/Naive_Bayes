@@ -51,6 +51,7 @@ void Genome::loadKmerCounts(){
     // Since we're here, another thread has already loaded this data. Return.
     return;
   }
+  
   std::ifstream in(kmr_path.native());
 
   kmer_counts = new unordered_map<int, int>;
@@ -89,11 +90,13 @@ void Genome::loadKmerCounts(){
 void Genome::unload(){
   if(kmersLoaded){
     delete kmer_counts;
+    kmer_counts = nullptr;
     kmersLoaded = false;
   }
 
   if(sequenceLoaded){
     delete sequence;
+    sequence = nullptr;
     sequenceLoaded = false;
   }
 }
@@ -105,50 +108,68 @@ unordered_map<int, int>& Genome::getKmerCounts(){
   return *kmer_counts;
 }
 
+void Genome::setKmerCounts(unordered_map<int, int>* _kmer_counts){
+  //kmer_counts = new unordered_map<int, int>;
+  kmer_counts = _kmer_counts;
+  kmersLoaded = true;
+}
+
+void Genome::resetKmerCounts(){
+  kmersLoaded = false;
+}
+
 string& Genome::getSequence(){
   return *sequence;
 }
 
-void Genome::computeClassificationNumerator(Class<int>* cl){
+void Genome::setSequence(string &seq){
+  sequence = new string;
+  *sequence = seq;
+}
+
+double Genome::computeClassificationNumerator(Class<int>* cl){
   accumulator_set<double, features<tag::sum_kahan> > current, sumfrq;
   
-  current(cl->getNGenomes_lg());
+  //current(cl->getNGenomes_lg());
   ostringstream strs;
-  if(NB::debug_flag == NB::Debug::LOG_ALL){
-    strs<<"("<<cl->getId()<<"): "<<sum_kahan(current);
+  if(!Genome::STORE_ALL_NUMERATORS){
+    strs<<"("<<cl->getId()<<"): ";//<<sum_kahan(current);
   }
 
   for(unordered_map<int, int>::iterator freq = getKmerCounts().begin();
     freq != getKmerCounts().end(); freq++){
+
       sumfrq(freq->second);
       current(freq->second * cl->getFreqCount_lg(freq->first));
-      if(NB::debug_flag == NB::Debug::LOG_ALL){
+      if(!Genome::STORE_ALL_NUMERATORS){
         strs<<" + "<<freq->second<<" * "<<cl->getFreqCount_lg(freq->first);
       }
   }
   current(-sum_kahan(sumfrq) * cl->getSumFreq_lg());
-  if(NB::debug_flag == NB::Debug::LOG_ALL){
+  if(!Genome::STORE_ALL_NUMERATORS){
     strs<<" - "<<sum_kahan(sumfrq)<<" * "<<cl->getSumFreq_lg()<<" = ";
     strs<<sum_kahan(current)<<"\n";
   }
 
-  numeratorAccess.lock();
+  // numeratorAccess.lock();
 
-  if(!Genome::STORE_ALL_NUMERATORS){
-    double candidateNumerator = sum_kahan(current);
-    if(maximumNumeratorClass == NULL
-      || maximumNumerator < candidateNumerator){
-        maximumNumerator = candidateNumerator;
-        maximumNumeratorClass = cl;
-      }
-  }else{
-    numerator.push(make_pair(sum_kahan(current), cl));
-    if(NB::debug_flag == NB::Debug::LOG_ALL){
-      cout<<strs.str();
-    }
-  }
+  // if(!Genome::STORE_ALL_NUMERATORS){
+  //   double candidateNumerator = sum_kahan(current);
+  //   if(maximumNumeratorClass == NULL
+  //     || maximumNumerator < candidateNumerator){
+  //       maximumNumerator = candidateNumerator;
+  //       maximumNumeratorClass = cl;
+  //     }
+  // }else{
+  //   numerator.push(make_pair(sum_kahan(current), cl));
+  //   if(NB::debug_flag == true){
+  //     cout<<strs.str();
+  //   }
+  // }
 
-  numeratorAccess.unlock();
+  // numeratorAccess.unlock();
+
+  return sum_kahan(current);
 }
 
 Genome::score Genome::getMaximum(){
@@ -183,6 +204,7 @@ Genome::pqueue Genome::getConfidences(){
     confidence.push(make_pair(confidence_lg, num->second));
     //processFreqs(getKmerCounts(), num->second, confidence_lg);
   }
+  
 
   return confidence;
 }
@@ -257,4 +279,8 @@ long long int Genome::max(long long int a,
   }else{
     return d;
   }
+}
+
+Genome::pqueue& Genome::getNumerator(){
+  return numerator;
 }
