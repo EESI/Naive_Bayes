@@ -91,16 +91,6 @@ public:
    */
   string& getSequence();
 
-  // MARKED_NEW
-  void setSequence(string &seq);
-
-  /**
-   * Obtains a priority queue populated with class-probability pairs.
-   * Classes most likely to hold the genome will be at the top of the queue.
-   * @return     For each class, the probability of this genome pertaining
-   *             to it.
-   */
-  pqueue getConfidences();
 
   /**
    * Returns the path on disk of the kmr count file registered for this read.
@@ -119,20 +109,29 @@ public:
    */
   unordered_map<int, int>& getKmerCounts();
 
-  /** MARKED NEW
-   *
-   *
+
+  /**
+   * @brief Sets the k-mer counts for the genome and marks them as loaded.
+   * 
+   * This function updates the k-mer counts data member with the provided 
+   * unordered map and sets the `kmersLoaded` flag to true. It's typically
+   * called after the k-mer counts for the genome have been computed and 
+   * are ready to be stored within the object.
+   * 
+   * @param _kmer_counts Pointer to an unordered_map containing k-mer counts 
+   * where the key represents the k-mer (as an integer) and the value is its count.
    */
   void setKmerCounts(unordered_map<int, int>* _kmer_counts);
 
-  void resetKmerCounts();
 
   /**
-   * When the STORE_ALL_NUMERATORS flag is false, returns the highest ranked class.
+   * @brief Resets the k-mer counts status for the genome.
+   * 
+   * This function resets the `kmersLoaded` flag to false, indicating that the
+   * k-mer counts for the genome are no longer available or loaded. Note that
+   * it does not clear the actual k-mer counts data, only the status flag.
    */
-  score getMaximum();
-
-  pqueue& getNumerator();
+  void resetKmerCounts();
 
   static bool STORE_ALL_NUMERATORS;
 protected:

@@ -6,7 +6,7 @@ GEN_SRC=$1
 FOLD=$2
 N_FOLDS=$3
 KMERSIZE=$4
-MEMLIM=48000000
+MEMLIM=48000
 
 for ((N=1; N<=$N_FOLDS; N++)); do
     if [ $N -ne $FOLD ] && [ -d $GEN_SRC/fold$N ]

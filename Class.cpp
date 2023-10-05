@@ -320,12 +320,8 @@ unordered_map<T, int>& Class<T>::getFreqcnt(){
   return *freqcnt;
 }
 
-// TODO fix size
 template <class T>
 size_t Class<T>::getClassSizeInBytes(){
-
-  //printf("+++ size: %d, %d, %d, %d\n", freqcnt->size(), freqcnt_lg->size(), (int)sizeof(Class<T>), (*freqcnt).size() * (sizeof(T) + sizeof(int)));
-
   return (*freqcnt_lg).size() * (sizeof(T) + sizeof(double_wflag)) + sizeof(Class<T>);
 }
 
@@ -335,9 +331,6 @@ size_t Class<T>::getClassSizeInBytes(){
  */
 template <class T>
 void Class<T>::serialize(std::ofstream& out) {
-    // Serialization format spec. <first, the logarithmated values>:
-    // id ngenomes_lg sumfreq_lg freqcnt_lg.size() freqcnt_lg <same_line>->
-    // ngenomes sumfreq freqcnt.size() freqcnt
 
     // Serialize ngenomes_lg
     double ngenomes_lg = getNGenomes_lg();
@@ -363,23 +356,6 @@ void Class<T>::serialize(std::ofstream& out) {
         out.write(reinterpret_cast<const char*>(&value), sizeof(value));
     }
 }
-// template <class T>
-// string Class<T>::serialize(){
-//   ostringstream strs;
-//   /*
-//    * Serialization format spec.  <first, the logarithmated values>:
-//    * id ngenomes_lg sumfreq_lg freqcnt_lg.size() freqcnt_lg <same_line>->
-//    * ngenomes sumfreq freqcnt.size() freqcnt
-//    */
-//   strs<<serializeDouble(getNGenomes_lg())<<" ";
-//   strs<<serializeDouble(getSumFreq_lg())<<" "<<getFreqcnt_lg().size();
-//   for(typename unordered_map<T, double_wflag>::iterator iter = getFreqcnt_lg().begin();
-//     iter != getFreqcnt_lg().end(); iter++){
-//       strs<<" "<<iter->first<<" "<<serializeDouble(getFreqCount_lg(iter->first));
-//     }
-
-//   return strs.str();
-// }
 
 template <class T>
 void Class<T>::deserialize(std::ifstream& in) {
@@ -410,35 +386,4 @@ void Class<T>::deserialize(std::ifstream& in) {
       getFreqcnt_lg()[kmer] = make_pair(reinterpret_cast<double&>(tmp), true);
     }
 
-    // size_t num_elements = freqcnt_lg->size();
-    // size_t key_memory = num_elements * sizeof(T);
-    // size_t value_memory = num_elements * sizeof(double_wflag);
-    // size_t bucket_memory = freqcnt_lg->bucket_count() * sizeof(std::list<std::pair<T, double_wflag>>);
-    // size_t approx_memory = key_memory + value_memory + bucket_memory;
-
 }
-
-
-// template <class T>
-// void Class<T>::deserialize(std::ifstream& in){
-//   long long int tmp;
-
-//   in>>tmp;
-//   ngenomes_lg = make_pair(deserializeDouble(tmp), true);
-
-//   in>>tmp;
-//   sumfreq_lg = make_pair(deserializeDouble(tmp), true);
-
-//   int n, kmer;
-//   in>>n;
-
-//   for(int i=0; i<n; i++){
-//     in>>kmer>>tmp;
-//     getFreqcnt_lg()[kmer] = make_pair(deserializeDouble(tmp), true);
-//   }
-// }
-
-// template <class T>
-// ostream& operator<<(ostream& out, Class<T>& cls){
-//   out<<cls.serialize();
-// }

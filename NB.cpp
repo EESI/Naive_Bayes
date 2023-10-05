@@ -46,6 +46,8 @@ void NB::loadTrain(){
 }
 
 void NB::loadClassify(){
+  nthreads -= 1;
+
   vector<path> res = Diskutil::getItemsInDir(save_dir);
   for(vector<path>::iterator iter = res.begin(); iter != res.end(); iter++){
 
@@ -87,7 +89,7 @@ size_t NB::extractHeader(string& inputFile){
   int inFileDescriptor = open(input_fasta_file.c_str(), O_RDONLY);
   if (inFileDescriptor == -1) {
       std::cerr << "Error opening file: " << input_fasta_file << std::endl;
-      return 0;
+      exit(1);
   }
 
   // Get the file size
@@ -99,7 +101,7 @@ size_t NB::extractHeader(string& inputFile){
   if (fileMemory == MAP_FAILED) {
       std::cerr << "Error mapping file into memory." << std::endl;
       close(inFileDescriptor);
-      return 0;
+      exit(1);
   }
 
   // Extract headers
@@ -141,7 +143,7 @@ size_t NB::extractHeader(string& inputFile){
               std::cerr << "Error opening output file: " << currentHeaderOutputFile << " and " << currentMaxOutputFile << std::endl;
               munmap(fileMemory, fileSize);
               close(inFileDescriptor);
-              return 0;
+              exit(1);
           }
           fileIndex += output_max_row;
       }
@@ -357,7 +359,7 @@ void NB::getStringSeqHeaders(vector<string>& seq_headers, const string& file_nam
   std::ifstream file(file_name, std::ios::binary);
   if (!file.is_open()) {
       std::cerr << "Error opening file: " << file_name << std::endl;
-      return;
+      exit(1);
   }
 
   while (!file.eof()) {
@@ -368,7 +370,7 @@ void NB::getStringSeqHeaders(vector<string>& seq_headers, const string& file_nam
               break;  // Reached the end of the file
           } else {
               std::cerr << "Error reading size from file." << std::endl;
-              return;
+              exit(1);
           }
       }
 
@@ -376,7 +378,7 @@ void NB::getStringSeqHeaders(vector<string>& seq_headers, const string& file_nam
       std::vector<char> buffer(size);
       if (!file.read(buffer.data(), size)) {
           std::cerr << "Error reading string data from file." << std::endl;
-          return;
+          exit(1);
       }
 
       // Append the extracted string to the vector
@@ -560,6 +562,7 @@ void NB::concatenateCSVByColumns(const std::vector<std::string>& inputFiles, con
         for(size_t col = 0; col < cols_to_write; col++){
 
           if(*data_ptr > 0){
+            // log likelihood value can't be postive. Invalid sequence.
             if(current_map == start_file_index){
               outputFile << "invalid sequence" << ",\n";
             }
@@ -653,7 +656,7 @@ void NB::loadMaxResults(vector<pair<int,string>>& max_files, vector<vector<doubl
         int fd = open(file_path.c_str(), O_RDONLY);
         if (fd == -1) {
             std::cerr << "Error opening file: " << file_path << std::endl;
-            continue;
+            exit(1);
         }
 
         // Get the file size
@@ -693,7 +696,7 @@ void NB::compareAndWriteMax(vector<double> max_vector, vector<double>& compare_v
     std::ofstream outFile(filepath, std::ios::binary);
     if (!outFile) {
         std::cerr << "Failed to open output file: " << filepath << std::endl;
-        return;
+        exit(1);
     }
 
     // Iterate through odd-indexed values, compare, and modify compare_vector
@@ -961,7 +964,7 @@ void NB::getConcatFiles(std::unordered_map<size_t, std::vector<std::string>>& fi
               num2 = std::stoi(match2[0]);
           }
 
-          // Add 0.5 to the value of "concat_" files before sorting to make sure it's before the other temp files
+          // make sure concat is the first file
           if (file1.find("concat_") == 0) {
               num1 += 0.5;
           }
@@ -1014,9 +1017,11 @@ void NB::concatenateCSVs(string& output_name){
 void NB::joinClassifyThreads(){
   job_done = true;
   jobUpdateStatus.notify_all();
+  
   for(uint64_t i=0; i<threads.size(); i++){
     threads[i].join();
   }
+
   threads.clear();
 
 }
@@ -1096,7 +1101,7 @@ void NB::writeToCSV(){
       std::ofstream header_file(header_name);
       if (!header_file) {
           std::cout << "Error Creating Output File." << "  " << header_name << std::endl;
-          return;
+          exit(1);
       }
 
       for (size_t i = 0; i < cls_size; ++i) {
@@ -1117,7 +1122,7 @@ void NB::writeToCSV(){
     std::ofstream outputFile(filename);
     if (!outputFile) {
         std::cout << "Error Creating Output File." << "  " << filename << std::endl;
-        return;
+        exit(1);
     }
 
     uint64_t cols = outputs_write[0].size();
@@ -1143,7 +1148,6 @@ void NB::writeToCSV(){
   }
 }
 
-// MARKED-NEW
 bool NB::hasLoadedAll(){
   return load_start_index >= training_genomes.size();
 }
@@ -1174,7 +1178,6 @@ void NB::unloadClassesThreadProcess(){
   }
 }
 
-// MARKED-NEW
 void NB::unloadClasses(){
 
   for (auto cls : classes) {
@@ -1255,7 +1258,6 @@ void NB::wrapUpBatch(){
 
 }
 
-// MARKED-NEW
 void NB::loadClassesThreadProcess(uint64_t &max_memory, uint64_t &used_memory){
 
   while(true){
@@ -1290,7 +1292,6 @@ void NB::loadClassesThreadProcess(uint64_t &max_memory, uint64_t &used_memory){
 
 }
 
-// MARKED-NEW
 void NB::loadClasses(uint64_t &max_memory){
     
   uint64_t memory_used = 0;
@@ -1345,6 +1346,7 @@ void NB::getSeqHeaderFiles(vector<pair<int,string>>& seq_header_files){
 
   } else {
       std::cerr << "Error opening directory." << std::endl;
+      exit(1);
   }
 }
 

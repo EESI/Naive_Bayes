@@ -144,20 +144,43 @@ public:
      */
     bool loaded();
 
-    /** MARKED-NEW
-    * return the sum of the size of the <class> object and the total bytes of its 
-    * unordered_map objects.
-    * @return     The total bytes of a class object.
-    */
+  /**
+   * @brief Computes the size in bytes of a class instance and its associated data.
+   * 
+   * This function calculates the memory consumption of the current class instance. 
+   * The calculated size is determined based on the size of the `Class<T>` object itself and 
+   * the size of its associated data (`freqcnt_lg` and its elements).
+   * 
+   * @return The total size in bytes of the class instance.
+   */
     size_t getClassSizeInBytes();
+    
 
-    /** MARKED-NEW
-     * return the sum of the size of the <class> object and the total bytes of its 
-     * unordered_map objects.
-     * @return     The total bytes of a class object.
-     */
+  /**
+   * @brief Estimates the memory consumption in bytes for a hypothetical class instance based on the number of elements.
+   * 
+   * This function provides an estimation of how much memory a class instance would consume if it held 
+   * a given number of elements. It calculates the size based on:
+   * 1. Memory occupied by the keys (of type T).
+   * 2. Memory occupied by the values (of type double_wflag).
+   * 3. Memory occupied by the buckets containing the key-value pairs, with a bucketing factor of 1.5.
+   * 
+   * @param num_elements The number of key-value elements we are estimating memory for.
+   * @return The estimated total size in bytes.
+   */
     static size_t getEstimatedClassBytes(size_t& num_elements);
 
+
+
+  /**
+   * @brief Calculates the size in bytes of a single map element consisting of a key-value pair.
+   * 
+   * This function calculates the total memory consumed by an individual map element. The size is based on:
+   * 1. Memory occupied by the key (of type T).
+   * 2. Memory occupied by the value (of type double).
+   * 
+   * @return The combined size in bytes of both key and value.
+   */
     static size_t getMapElementSize();
 
 protected:
@@ -194,9 +217,6 @@ protected:
   static double logAdd(vector<double> exponents);
 
 };
-
-// template <class T>
-// ostream& operator<<(ostream& out, Class<T>& cls);
 
 #include "Class.cpp"
 

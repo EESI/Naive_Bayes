@@ -179,6 +179,11 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
       exit(1);
     }
   }
+
+  if(nb.getThreadNumber() < 2){
+    cout<<"Error: at least 2 threads are required for classification.\n";
+    exit(1);
+  }
   
   NB::OUTPUT_FULL_LOG_LIKELIHOOD = full_result;
 
@@ -190,9 +195,6 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
 
   uint64_t class_memory_limit, buffer_memory_limit = 0;
   allocateMemoryDistribution(nb, inputFile, memory_limit, class_memory_limit, buffer_memory_limit, total_seq);
-  
-  cout << "Class memory limit: " << class_memory_limit << endl;
-  cout << "Buffer memory limit: " << buffer_memory_limit << endl;
 
   std::vector<char> buffer(buffer_memory_limit, 0);
   
@@ -311,7 +313,7 @@ int main(int argc, char* argv[]){
 all at once by default")
     ("full_result,f", p_opt::bool_switch(&full_result)->default_value(false),
                "Print log likelihoods for class for every classified read.")
-    ("output,o", p_opt::value<string>(&result_file)->default_value("log_likelihood.xlsx"),
+    ("output_prefix,o", p_opt::value<string>(&result_file)->default_value("log_likelihood"),
             "Output path log.")
     ("temp-dir,d", p_opt::value<string>(&tempDir)->default_value("/tmp"),
             "Temporary (working) directory path")
