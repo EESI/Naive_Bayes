@@ -64,7 +64,7 @@ double Class<T>::logAdd(vector<double> exponents){
     result += exp(*num - max);
   }
   result = max + log(result);
-
+  
   return result;
 }
 
@@ -84,6 +84,21 @@ void Class<T>::addSumfreq(long long int sumfreq_){
     sumfreq_lg.second = false;
   }
   sumfreq += sumfreq_;
+}
+
+template <class T>
+size_t Class<T>::getEstimatedClassBytes(size_t& num_elements){
+  size_t key_memory = num_elements * sizeof(T);
+  size_t value_memory = num_elements * sizeof(double_wflag);
+  size_t bucket_memory = (num_elements * 1.5) * sizeof(std::list<std::pair<T, double_wflag>>);
+  size_t approx_memory = key_memory + value_memory + bucket_memory;
+
+  return approx_memory;
+}
+
+template <class T>
+size_t Class<T>::getMapElementSize(){
+  return sizeof(T) + sizeof(double);
 }
 
 template <class T>
@@ -201,6 +216,7 @@ double Class<T>::deserializeDouble(uint64_t value){
 
 template <class T>
 void Class<T>::addGenome(Genome* genome, double confidence_lg){
+
   if(confidence_lg == 0.0)
     addNGenomes(1);
   else
@@ -224,6 +240,8 @@ void Class<T>::addGenome(Genome* genome, double confidence_lg){
     addSumfreq(sum);
   else
     addSumfreq_lg(confidence_lg + log(sum));
+    
+    
   genomes.push_back(genome);
 }
 
@@ -245,18 +263,20 @@ void Class<T>::load(path source_path){
 
   freqcnt_lg = new unordered_map<T, double_wflag>;
   freqcnt = new unordered_map<T, int>;
-
+  
   std::ifstream in(source_path.native());
   if(in.good()){
     deserialize(in);
   }
+
   in.close();
 }
 
 template <class T>
 void Class<T>::save(path destination_path){
   std::ofstream out(destination_path.native());
-  out<<serialize();
+  // out<<serialize();
+  serialize(out);
   out.close();
 }
 
@@ -272,6 +292,13 @@ void Class<T>::load(){
 
 template <class T>
 void Class<T>::unload(){
+
+  freqcnt->clear();
+  std::unordered_map<T, int>().swap(*freqcnt);
+
+  freqcnt_lg->clear();
+  std::unordered_map<T, std::pair<double, bool>>().swap(*freqcnt_lg);
+
   delete freqcnt;
   delete freqcnt_lg;
 
@@ -293,49 +320,70 @@ unordered_map<T, int>& Class<T>::getFreqcnt(){
   return *freqcnt;
 }
 
+template <class T>
+size_t Class<T>::getClassSizeInBytes(){
+  return (*freqcnt_lg).size() * (sizeof(T) + sizeof(double_wflag)) + sizeof(Class<T>);
+}
+
 /*
  *  WARNING: Serialization may be platform-dependent, as C++11 does not
  *  guarantee all 'double' types to follow the IEEE-754 64-bit standard.
  */
 template <class T>
-string Class<T>::serialize(){
-  ostringstream strs;
-  /*
-   * Serialization format spec.  <first, the logarithmated values>:
-   * id ngenomes_lg sumfreq_lg freqcnt_lg.size() freqcnt_lg <same_line>->
-   * ngenomes sumfreq freqcnt.size() freqcnt
-   */
+void Class<T>::serialize(std::ofstream& out) {
 
-  strs<<serializeDouble(getNGenomes_lg())<<" ";
-  strs<<serializeDouble(getSumFreq_lg())<<" "<<getFreqcnt_lg().size();
-  for(typename unordered_map<T, double_wflag>::iterator iter = getFreqcnt_lg().begin();
-    iter != getFreqcnt_lg().end(); iter++){
-      strs<<" "<<iter->first<<" "<<serializeDouble(getFreqCount_lg(iter->first));
+    // Serialize ngenomes_lg
+    double ngenomes_lg = getNGenomes_lg();
+    out.write(reinterpret_cast<const char*>(&ngenomes_lg), sizeof(ngenomes_lg));
+
+    // Serialize sumfreq_lg
+    double sumfreq_lg = getSumFreq_lg();
+    out.write(reinterpret_cast<const char*>(&sumfreq_lg), sizeof(sumfreq_lg));
+
+    // Serialize freqcnt_lg.size()
+    int freqcntSize = getFreqcnt_lg().size();
+    out.write(reinterpret_cast<const char*>(&freqcntSize), sizeof(freqcntSize));
+
+    // Serialize freqcnt_lg
+    for (const auto& iter : getFreqcnt_lg()) {
+        T key = iter.first;
+        double value = getFreqCount_lg(iter.first);
+        
+        // Serialize key
+        out.write(reinterpret_cast<const char*>(&key), sizeof(key));
+        
+        // Serialize value
+        out.write(reinterpret_cast<const char*>(&value), sizeof(value));
+    }
+}
+
+template <class T>
+void Class<T>::deserialize(std::ifstream& in) {
+    long long int tmp;
+
+    // Read and convert ngenomes_lg
+    in.read(reinterpret_cast<char*>(&tmp), sizeof(tmp));
+    ngenomes_lg = make_pair(reinterpret_cast<double&>(tmp), true);
+
+    // Read and convert sumfreq_lg
+    in.read(reinterpret_cast<char*>(&tmp), sizeof(tmp));
+    sumfreq_lg = make_pair(reinterpret_cast<double&>(tmp), true);
+
+    int n, kmer;
+
+    // Read the number of elements in the map
+    in.read(reinterpret_cast<char*>(&n), sizeof(n));
+    
+    getFreqcnt_lg().reserve(n);
+
+    for (int i = 0; i < n; i++) {
+      // Read the kmer value
+      in.read(reinterpret_cast<char*>(&kmer), sizeof(kmer));
+
+      // Read and convert the tmp value
+      in.read(reinterpret_cast<char*>(&tmp), sizeof(tmp));
+
+      getFreqcnt_lg()[kmer] = make_pair(reinterpret_cast<double&>(tmp), true);
     }
 
-  return strs.str();
-}
-
-template <class T>
-void Class<T>::deserialize(std::ifstream& in){
-  long long int tmp;
-
-  in>>tmp;
-  ngenomes_lg = make_pair(deserializeDouble(tmp), true);
-
-  in>>tmp;
-  sumfreq_lg = make_pair(deserializeDouble(tmp), true);
-
-  int n, kmer;
-  in>>n;
-
-  for(int i=0; i<n; i++){
-    in>>kmer>>tmp;
-    getFreqcnt_lg()[kmer] = make_pair(deserializeDouble(tmp), true);
-  }
-}
-
-template <class T>
-ostream& operator<<(ostream& out, Class<T>& cls){
-  out<<cls.serialize();
 }

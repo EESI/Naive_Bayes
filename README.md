@@ -18,18 +18,19 @@ Generic options:
   -v [ --version ]      Print version information
 
 Allowed options:
-  -s [ --savedir ] arg (=./NB_save) Path to save folder
-  -k [ --kmersize ] arg (=6)        Kmer size used in count files
-  -m [ --memlimit ] arg (=-1)       Cap memory use to a predefined value (KBs).
-  -t [ --nthreads ] arg (=1)        Number of threads to spawn, 1 by default
-  -e [ --ext ] arg (=.kmr)          Extension of kmer count files, ".kmr" by
-                                    default
-  -n [ --nbatch ] arg (=-1)         Number of genomes to load at one time in
-                                    memory, all at once by default
-  -p [ --p_posterior ] arg (=0)     Print posteriors for every classified read.
-                                    This flag increases the classifier's memory
-                                    usage and is not compatible with the memory
-                                    cap flag.
+  -s [ --savedir ] arg (=./NB_save)     Path to save folder
+  -k [ --kmersize ] arg (=6)            Kmer size used in count files
+  -m [ --memlimit ] arg (=0)            Cap memory use to a predefined value (MBs).
+  -t [ --nthreads ] arg (=1)            Number of threads to spawn, 1 by default
+  -e [ --ext ] arg (=.kmr)              Extension of kmer count files, ".kmr" by default
+  -n [ --nbatch ] arg (=0)              Number of genomes to load at one time in memory for training, all at once by default
+  -f [ --full_result ]                  Print log likelihoods for class for every classified read.
+  -o [ --output_prefix ] arg (=log_likelihood)  Output prefix.
+  -d [ --temp-dir ] arg (=/tmp)         Temporary (working) directory path
+  -r [ --row ] arg (=150000)            Maximum number of rows (classify mode)
+  -c [ --col ] arg (=100000)            Maximum number of columns (classify mode)
+
+
 ```
 
 ### -m : Using the --memlimit memory cap option
@@ -51,6 +52,7 @@ The default value is -1, which disables this option.
 This option specifies the number of concurrent threads to run. Each thread will compute data for a separate class, so each thread will load one savefile. DNA reads/sequences will be shared across all threads.
 
 The default value is 1, which will run the program in single threaded mode.
+Note: For classification, the number of threads should be at least 2.
 
 ### -e : Using the --ext option
 This option specifies the extension of the files containing the kmer counts for each DNA read/sequence. NBC++ does not include a kmer counter by design; this part of the process should be taken care of by a separate module of the user's choosing. However, we do supply a kmer generating script that computes counts using Jellyfish 2 for all FASTA files in a given directory.
