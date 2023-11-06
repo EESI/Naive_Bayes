@@ -5,13 +5,16 @@ Maintainer: Alexandru Cristian, alex dot cristian at drexel dot edu
 Owner: Gail Rosen, gailr at ece dot drexel dot edu  
 
 ## Usage
-Pick one of the execution [modes]: train to create or add new sequences to a savefile, or classify to use existing savefiles and classify reads. In both cases, the [source dir] will contain the DNA sequences / reads. The benchmark mode is currently unsupported.
+Pick one of the execution [modes]: train to create or add new sequences to a savefile (the .dat files), or classify to use existing savefiles and classify reads. In both cases, the [source dir] will contain the DNA sequences / reads. The benchmark mode is currently unsupported.
 
-When training, the tags will be expressed by placing each sequence into a subfolder of the source directory, by the name of its respective class. The same applies when classifying, since NBC++ currently checks at the end of its execution how many picks were correct, providing the user with its accuracy.
+When training, the tags will be expressed by placing each sequence into a subfolder of the source directory, by the name of its respective class. When classifying, make sure the folder only contains ONE file to be classified, and no other files. If there are multiple files, please concatenate them into one file.
 
-If an unsupervised run is desired, for now the solution is to simply group all reads into one folder with an arbitrary tag.
+For training, NBC takes the kmer count file as input. If the file is sequence file, please use kmer count tools to generate the kmer count file.
+
+For classifying, by default, the program will output the max likelihood class for each read. If the -f option is specified, the program will output the log likelihoods for each class for each read, and the max likelihood class. If the sequence read contains no valid kmers (kmer = 0), the program will output "sequence contains no valid kmers" for the read.
+
 ```
-./NB.run [mode: train/classify/benchmark] [source dir] [options]
+./NB.run [mode: train/classify] [source dir] [options]
 
 Generic options:
   -h [ --help ]         Print help message
@@ -34,12 +37,9 @@ Allowed options:
 ```
 
 ### -m : Using the --memlimit memory cap option
-In the current build of NBC++, the "-m" option refers strictly to the memory dedicated to loading the DNA reads/sequences into memory (depending on the mode used, train/classify).
+In the current build of NBC++, the "-m" option refers to the max memory (in MBs) the program can use.
 
-Additional considerations must be taken when this option is combined with NBC++'s multithreading capability. For example, if using 15-mers, the maximum theoretical savefile size would be of 16GBs. In our experimental testing on our NCBI dataset, the maximum size approaches 4GBs for 15-mers. NBC++ will store in memory a number of classes equivalent to that of running threads, and their size is not accounted for by "--memlimit".
-
-As a result, one must manually calculate the space available to load DNA reads, while also leaving some space to load the actual class savefiles. NBC++ will automatically adjust the number of DNA reads loaded to best fill the space allocated by the "--memlimit" option.
-The default value is -1, which disables this option.
+For classify mode, please allocate at least 2000 MBs.
 
 ### -n : Using the --nbatch read cap option
 This option fulfills the same function that --memlimit provides, the exception being that, in this case, a static cap is specified on the number of DNA reads loaded at one time into memory.
@@ -67,6 +67,8 @@ The default value is 6, which will make the program output and expect 6-mers.
 ### -s : Using the --savedir option
 This option specifies a target directory in which to save or load training data, depending on the mode. Each savefile in this directory corresponds to one class.
 
+The save files are named "[class name]-save.dat", where [class name] is the name of the class the savefile corresponds to.
+
 The default value is "./NB_save", which will direct the program to search for a folder named NB_save in its current directory.
 
 ## Project dependencies
@@ -92,54 +94,3 @@ make
 ```
 Should you wish to debug a crash, a debug-friendly binary can be produced by building the "debug" Make target.
 The experiment instructions below are written for Proteus runs, but they can be used for local runs as well - just make sure to compile in the way outlined above. Also, we'd recommend at least 16GBs for a relatively smooth experience - that should be able to allow for two cores to work concurrently. SSDs are highly recommended due to NBC++'s heavy use of disk I/O.
-
-
-## Experiment Instruction (How to train and test the model):
-1. Compile the NB classifier on Proteus (boost/openmpi/gcc is the dependency):
-```
-#! /bin/bash
-
-module load boost/openmpi/gcc/64/1.57.0
-
-
-make proteus
-```
-2. Train NB classifier:
-change the variable `EXEC_ROOT` in nb-train.bash to the path to `NB.run` (the compiled NB classifier binary). Then run command:
-```
-nb-train.bash [path-to-data] [fold index] [total_num_of_folds] [K-mer size]
-```
-for example, let's assume we train NB classifier with 5-fold cross validation, the path to training data is `~/genomes/` (there are 5 directory in it, `fold1/` to `fold5`) and k-mer size is 15, then there will be 5 independent models. The command to train NB classifier and get the first model is:
-```
-nb-train.bash ~/genomes/ 1 5 15
-```
-Similarly, the third model out of five in 5-fold cross validation can be obtained by running:
-```
-nb-train.bash ~/genomes/ 3 5 15
-```
-3. Testing NB classifier:
-change the variable `EXEC_ROOT` in nb-classify.bash to the path to `NB.run` (the compiled NB classifier binary). Then run command:
-```
-nb-classify.bash [path-to-model] [path-to-testing_data] [fold index] [K-mer size]
-```
-for example, let's assume we have trained NB classifier based on the configurations we described above. Then the 5 trained models are stored in the same directory as your data (`~/genomes/`). Hence, the path to model is `~/genomes/` too and k-mer size is 15, then there will be 5 independent models (`save_1/` to `save_5`). The command to classify reads in testing dataset (path: `~/ncbi_reads_noerr`) using the first model is:
-```
-nb-classify.bash ~/genomes/ ~/ncbi_reads_noerr 1 15
-```
-Similarly, classification results using the third model out of five in 5-fold cross validation can be obtained by running:
-```
-nb-classify.bash ~/genomes/ ~/ncbi_reads_noerr 3 15
-```
-The program will print out the classification progress as well as the results in stdout.
-
-4. Experimental dataset (can be found in Proteus group folder):
-
-Train dataset - ready on Dec. 15th 2018 (`~/genomes` directory in the example above):
-```
-/mnt/HA/groups/rosenGrp/zz374/INBC_latest/genomes
-```
-Test dataset - ready on Dec. 15th 2018  (`~/ncbi_reads_noerr` directory in the example above):
-```
-/mnt/HA/groups/rosenGrp/zz374/INBC_latest/ncbi_reads_noerr
-```
-
