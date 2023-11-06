@@ -564,7 +564,7 @@ void NB::concatenateCSVByColumns(const std::vector<std::string>& inputFiles, con
           if(*data_ptr > 0){
             // log likelihood value can't be postive. Invalid sequence.
             if(current_map == start_file_index){
-              outputFile << "invalid sequence" << ",\n";
+              outputFile << "sequence contains no valid kmers" << ",\n";
             }
             
             data_ptr+=cols_to_write;
@@ -1415,7 +1415,7 @@ void NB::outputMaxResults(vector<pair<int,string>>& seq_header_files, vector<pai
     double* data = (double*)mapped_data;
     for (size_t j = 0; j < seq_headers.size(); j++) {
       if(*data < 0){
-        output_file << seq_headers[j] << "," << "invalid kmer" << ","<< endl;
+        output_file << seq_headers[j] << "," << "sequence contains no valid kmers" << ","<< endl;
         data++;
         data++;
         continue;

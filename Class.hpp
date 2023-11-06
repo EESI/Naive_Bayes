@@ -212,8 +212,6 @@ protected:
   unordered_map<T, double_wflag>& getFreqcnt_lg();
   unordered_map<T, int>& getFreqcnt();
 
-  static uint64_t serializeDouble(double value);
-  static double deserializeDouble(uint64_t value);
   static double logAdd(vector<double> exponents);
 
 };

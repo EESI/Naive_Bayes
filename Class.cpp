@@ -199,22 +199,6 @@ string Class<T>::getId(){
 }
 
 template <class T>
-uint64_t Class<T>::serializeDouble(double value){
-  uint64_t result;
-  assert(sizeof(result) == sizeof(value));
-  memcpy(&result, &value, sizeof(result));
-  return result;
-}
-
-template <class T>
-double Class<T>::deserializeDouble(uint64_t value){
-  double result;
-  assert(sizeof(result) == sizeof(value));
-  memcpy(&result, &value, sizeof(result));
-  return result;
-}
-
-template <class T>
 void Class<T>::addGenome(Genome* genome, double confidence_lg){
 
   if(confidence_lg == 0.0)
@@ -367,6 +351,7 @@ void Class<T>::deserialize(std::ifstream& in) {
 
     // Read and convert sumfreq_lg
     in.read(reinterpret_cast<char*>(&tmp), sizeof(tmp));
+
     sumfreq_lg = make_pair(reinterpret_cast<double&>(tmp), true);
 
     int n, kmer;

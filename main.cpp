@@ -180,7 +180,7 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
     }
   }
 
-  if(nb.getThreadNumber() < 2){
+  if(nb.getThreadNumber() < 1){
     cout<<"Error: at least 2 threads are required for classification.\n";
     exit(1);
   }
@@ -319,7 +319,7 @@ all at once by default")
             "Temporary (working) directory path")
     ("row,r", p_opt::value<uint64_t>(&max_row)->default_value(150000),
             "Maximum number of rows (classify mode))")
-    ("col,c", p_opt::value<uint64_t>(&max_col)->default_value(100000),
+    ("col,c", p_opt::value<uint64_t>(&max_col)->default_value(150000),
             "Maximum number of columns (classify mode)")
   ;
   

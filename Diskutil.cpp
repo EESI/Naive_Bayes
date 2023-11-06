@@ -15,7 +15,7 @@ vector<path> Diskutil::getItemsInDir(path parent){
   vector<path> result;
 
   if(!exists(parent) || !is_directory(parent)){
-    cout<<"Could not open directory path\n";
+    cout << "Could not open directory path: "<< parent.native() <<"\n";
     exit(1);
   }
   directory_iterator iter(parent);
