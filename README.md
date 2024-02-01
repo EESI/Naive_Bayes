@@ -1,7 +1,7 @@
 # NBC++ / Naive Bayes C++
 A Naive Bayes classifier for metagenomic data.  
 Development version NOT FOR RELEASE, © Drexel University EESI Lab, 2017.  
-Maintainer: Alexandru Cristian, alex dot cristian at drexel dot edu  
+Maintainer: Haozhe Duan and Alexandru Cristian, alex dot cristian at drexel dot edu  
 Owner: Gail Rosen, gailr at ece dot drexel dot edu  
 
 ## Usage
