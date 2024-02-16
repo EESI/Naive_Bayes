@@ -573,7 +573,6 @@ protected:
     uint64_t output_max_row;
     uint64_t output_max_col;
 
-
     mutex output_mtx;
     condition_variable output_cv;
 
@@ -584,95 +583,11 @@ protected:
     int last_written_class_index = -1;
     string output_prefix;
 
-
-    /**
-     * @brief Handles the processing of classificating 1 sequence.
-     * 
-     * Each thread invokes this function to check if there are any available jobs in the `classifyJobs` queue.
-     * Once a job is dequeued, k-mers are counted and a classification decision is made based on pre-loaded
-     * training genome data. Results are stored in the `outputs` matrix.
-     * 
-     * Internal working:
-     * 1. The function waits for a job to be available.
-     * 2. Once a job is available, it pops the job, counts the k-mers using `Diskutil::countKmer`.
-     * 3. It then checks the k-mers against the training genomes to classify the sequence.
-     * 4. The classification results (both the predicted class and its score) are stored in the `outputs` matrix.
-     * 5. If there's no k-mer data available, a default value is assigned to indicate an unclassified sequence.
-     *
-     */
     void classifyThreadController();
-
-
-    /**
-     * @brief Oversees the training process of classification models in a multi-threaded manner.
-     * 
-     * Each thread invokes this function to check if there are any class instances in the `classesToProcess` queue.
-     * Once a class is dequeued, its genomes are loaded, processed, and then saved. This involves populating the class
-     * with genome data (kmers), training it, and then serializing the results.
-     * 
-     * Internal working:
-     * 1. The function waits for a class instance to be available in the `classesToProcess` queue.
-     * 2. Once a class is available, it's dequeued and checked if it's already loaded.
-     * 3. If the class hasn't been loaded yet, it's loaded, trained, and then saved.
-     * 4. The class is then unloaded from memory and deleted to free up resources.
-     *
-     */
     void trainThreadController();
-
-
-    /**
-     * @brief Initializes the buffer used to store the classification results.
-     * 
-     * The buffer's size and structure depend on the NB::OUTPUT_FULL_LOG_LIKELIHOOD flag.
-     * If the flag is set, the buffer will be structured to store the full log likelihoods for each class.
-     * Otherwise, it will be sized to only store the max information.
-     */
     void initializeOutputBuffer();
-
-
-    /**
-     * @brief Concatenates multiple CSV files column-wise and writes the result to an output CSV file.
-     * 
-     * The method uses memory-mapped files for efficient reading of large CSV files and then 
-     * generates the output CSV file(s) by concatenating the columns from the input files. 
-     * If the total columns exceed the allowed max columns for the output, multiple CSV files 
-     * will be generated.
-     * 
-     * @param inputFiles A vector of file paths for the input CSV files.
-     * @param output_prefix A prefix used to name the output CSV file(s).
-     * @param sequence_num Used to generate unique output file names.
-     */
     void concatenateCSVByColumns(const std::vector<std::string>& inputFiles, const std::string& output_prefix, const std::size_t& sequence_num);
-
-
-    /**
-     * @brief Appends content (row-wise) from multiple temporary files (binary format) to a single (or multiple) output file(s) (binary format), 
-     *        based on a specified maximum file size.
-     * 
-     * The function uses memory-mapped I/O to efficiently process large files. The data is divided into columns, 
-     * and the function ensures that data written to any output file is aligned by these columns. The class headers
-     * for the columns are loaded from the given class_header_file.
-     * 
-     * Additionally, the function removes the processed temporary input files after they've been processed. 
-     * 
-     * @param inputFiles A list of paths to input files to be concatenated.
-     * @param outputFile The prefix of the output file path(s).
-     * @param class_header_file Path to a binary file containing the class headers.
-     */
     void fullAppend(std::vector<std::string>& inputFiles, const std::string& outputFile, string class_header);
-
-
-    /**
-     * @brief Processes a list of input temporary (binary format) files to compare and update maximum values across all input files.
-     * 
-     * The function uses memory-mapped I/O for efficient processing of large files. For each row of data in the input file, 
-     * the function compares the values to existing maximum values loaded from prior runs. 
-     * If the current row values exceed the maximums, the function updates them using the `compareAndWriteMax` function.
-     * 
-     * The function also cleans up by removing the temporary input files after processing.
-     * 
-     * @param inputFiles A list of paths to input CSV files to be processed.
-     */
     void maxAppend(std::vector<std::string>& inputFiles);
 };
 

@@ -98,6 +98,8 @@ void Diskutil::countKmer(unordered_map<int, int>& my_map, int kmer_size, const v
     // If not valid or not enough bases are read, continue to the next position
     if (!validKmer) continue;
 
+    
+    
     auto getComplementBits = [](int bits) -> int {
       // Bits for A=00, C=01, G=10, T=11
       switch(bits) {
@@ -121,6 +123,8 @@ void Diskutil::countKmer(unordered_map<int, int>& my_map, int kmer_size, const v
     if (result > resultRevComp) {
       result = resultRevComp;
     }
+
+    
 
     my_map[result]++;
   }

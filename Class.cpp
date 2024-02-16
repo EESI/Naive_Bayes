@@ -17,7 +17,21 @@ Class<T>::Class(string id_, int kmer_size, path _savefile)  {
   ngenomes=0;
 
   sumfreq=1;
+
   sumfreq<<=2*kmer_size;
+  
+  
+  if(kmer_size % 2 == 0){
+    long long int  parlindrome = 1;
+    parlindrome<<=(2*(kmer_size/2));
+    sumfreq -= parlindrome;
+    sumfreq /= 2;
+    sumfreq += parlindrome;
+  }else{
+    sumfreq /= 2;
+  }
+  
+  
 
   id = id_;
 
