@@ -573,7 +573,6 @@ protected:
     uint64_t output_max_row;
     uint64_t output_max_col;
 
-
     mutex output_mtx;
     condition_variable output_cv;
 
@@ -583,7 +582,6 @@ protected:
 
     int last_written_class_index = -1;
     string output_prefix;
-
 
     /**
      * @brief Handles the processing of classificating 1 sequence.
@@ -602,7 +600,6 @@ protected:
      */
     void classifyThreadController();
 
-
     /**
      * @brief Oversees the training process of classification models in a multi-threaded manner.
      * 
@@ -619,7 +616,6 @@ protected:
      */
     void trainThreadController();
 
-
     /**
      * @brief Initializes the buffer used to store the classification results.
      * 
@@ -628,7 +624,6 @@ protected:
      * Otherwise, it will be sized to only store the max information.
      */
     void initializeOutputBuffer();
-
 
     /**
      * @brief Concatenates multiple CSV files column-wise and writes the result to an output CSV file.
@@ -643,7 +638,6 @@ protected:
      * @param sequence_num Used to generate unique output file names.
      */
     void concatenateCSVByColumns(const std::vector<std::string>& inputFiles, const std::string& output_prefix, const std::size_t& sequence_num);
-
 
     /**
      * @brief Appends content (row-wise) from multiple temporary files (binary format) to a single (or multiple) output file(s) (binary format), 
@@ -660,7 +654,6 @@ protected:
      * @param class_header_file Path to a binary file containing the class headers.
      */
     void fullAppend(std::vector<std::string>& inputFiles, const std::string& outputFile, string class_header);
-
 
     /**
      * @brief Processes a list of input temporary (binary format) files to compare and update maximum values across all input files.

@@ -124,10 +124,11 @@ string& Genome::getSequence(){
 double Genome::computeClassificationNumerator(Class<int>* cl){
   accumulator_set<double, features<tag::sum_kahan> > current, sumfrq;
   
+  // uncomment this to include prior
   //current(cl->getNGenomes_lg());
   ostringstream strs;
   if(!Genome::STORE_ALL_NUMERATORS){
-    strs<<"("<<cl->getId()<<"): ";//<<sum_kahan(current);
+    strs<<"("<<cl->getId()<<"): " << sum_kahan(current);
   }
 
   for(unordered_map<int, int>::iterator freq = getKmerCounts().begin();
@@ -139,10 +140,14 @@ double Genome::computeClassificationNumerator(Class<int>* cl){
         strs<<" + "<<freq->second<<" * "<<cl->getFreqCount_lg(freq->first);
       }
   }
+
   current(-sum_kahan(sumfrq) * cl->getSumFreq_lg());
+  
   if(!Genome::STORE_ALL_NUMERATORS){
     strs<<" - "<<sum_kahan(sumfrq)<<" * "<<cl->getSumFreq_lg()<<" = ";
     strs<<sum_kahan(current)<<"\n";
+
+    cout<<strs.str();
   }
 
   return sum_kahan(current);

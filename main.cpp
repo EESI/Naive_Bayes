@@ -93,7 +93,7 @@ void trainNB(NB &nb, path srcdir, string extension, unsigned int nbatch,
 
 // Find the optimal memory distribution for the memory allocation for loading classes and sequences.
 void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memory_limit, uint64_t& class_memory_limit, uint64_t& buffer_memory_limit, size_t& total_seq){
-  
+
   const double DYNAMIC_LIST_CAPACITY_CONSTANT = 2;
   const size_t SEQ_PER_THREAD_INPUT_BUFFER = 200;
   const size_t SEQ_PER_THREAD_OUTPUT_BUFFER = 10 * SEQ_PER_THREAD_INPUT_BUFFER;
@@ -195,7 +195,7 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
 
   uint64_t class_memory_limit, buffer_memory_limit = 0;
   allocateMemoryDistribution(nb, inputFile, memory_limit, class_memory_limit, buffer_memory_limit, total_seq);
-
+  
   std::vector<char> buffer(buffer_memory_limit, 0);
   
   thread writer(&NB::writeToCSV, &nb);
@@ -276,6 +276,7 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
     file.close();
     nb.joinClassifyThreads();
     nb.unloadClasses();
+
   }
 
   writer.join();
@@ -285,6 +286,7 @@ int main(int argc, char* argv[]){
   unsigned int nbatch, nthreads, kmersize;
   uint64_t memLimit;
   string kmer_ext, srcdir, mode, savedir;
+  bool print_posterior;
 
   p_opt::options_description generic("Generic options");
   generic.add_options()
@@ -317,9 +319,9 @@ all at once by default")
             "Output path log.")
     ("temp-dir,d", p_opt::value<string>(&tempDir)->default_value("/tmp"),
             "Temporary (working) directory path")
-    ("row,r", p_opt::value<uint64_t>(&max_row)->default_value(150000),
+    ("row,r", p_opt::value<uint64_t>(&max_row)->default_value(450000),
             "Maximum number of rows (classify mode))")
-    ("col,c", p_opt::value<uint64_t>(&max_col)->default_value(150000),
+    ("col,c", p_opt::value<uint64_t>(&max_col)->default_value(20000),
             "Maximum number of columns (classify mode)")
   ;
   
@@ -354,8 +356,13 @@ all at once by default")
   create_directories(savedir);
   memLimit *= 1000 * 1000;
   NB nb(kmersize, path(savedir), nthreads);
+  nb.debug_flag = NB::Debug::LOG_SOME;
 
-  Genome::STORE_ALL_NUMERATORS = false;
+  if (!result_file.empty()) {
+    print_posterior = true;
+  }
+
+  Genome::STORE_ALL_NUMERATORS = print_posterior;
 
   if(mode.compare("train") == 0){
     cout<<"Train mode.\n";
