@@ -1146,7 +1146,6 @@ void NB::writeToCSV(){
   }
 }
 
-// MARKED-NEW
 bool NB::hasLoadedAll(){
   return load_start_index >= training_genomes.size();
 }
@@ -1177,7 +1176,6 @@ void NB::unloadClassesThreadProcess(){
   }
 }
 
-// MARKED-NEW
 void NB::unloadClasses(){
 
   for (auto cls : classes) {
@@ -1258,7 +1256,6 @@ void NB::wrapUpBatch(){
 
 }
 
-// MARKED-NEW
 void NB::loadClassesThreadProcess(uint64_t &max_memory, uint64_t &used_memory){
 
   while(true){
@@ -1293,7 +1290,6 @@ void NB::loadClassesThreadProcess(uint64_t &max_memory, uint64_t &used_memory){
 
 }
 
-// MARKED-NEW
 void NB::loadClasses(uint64_t &max_memory){
     
   uint64_t memory_used = 0;
@@ -1416,7 +1412,7 @@ void NB::outputMaxResults(vector<pair<int,string>>& seq_header_files, vector<pai
     double* data = (double*)mapped_data;
     for (size_t j = 0; j < seq_headers.size(); j++) {
       if(*data < 0){
-        output_file << seq_headers[j] << "," << "invalid kmer" << ","<< endl;
+        output_file << seq_headers[j] << "," << "sequence contains no valid kmers" << ","<< endl;
         data++;
         data++;
         continue;

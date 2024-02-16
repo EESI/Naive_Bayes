@@ -106,6 +106,11 @@ void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memo
   size_t filesize = Diskutil::getFileSize(input_file);
   size_t estimate_seq_avg_length = filesize / total_seq;
 
+  if(estimate_seq_avg_length > 1.5 * MAX_SEQ_LENGTH){
+    cout << "Error: estimated average sequence length is larger than the max 2MB length." << endl;
+    exit(1);
+  }
+
   size_t num_classes_load = 0;
   buffer_memory_limit = (estimate_seq_avg_length * SEQ_PER_THREAD_INPUT_BUFFER * nb.getThreadNumber());
   if(buffer_memory_limit > filesize){
@@ -173,6 +178,11 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
       std::cout << "Failed To Create Temporary Directory: " << temp_dir << std::endl;
       exit(1);
     }
+  }
+
+  if(nb.getThreadNumber() < 1){
+    cout<<"Error: at least 2 threads are required for classification.\n";
+    exit(1);
   }
   
   NB::OUTPUT_FULL_LOG_LIKELIHOOD = full_result;

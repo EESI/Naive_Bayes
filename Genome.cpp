@@ -146,9 +146,9 @@ double Genome::computeClassificationNumerator(Class<int>* cl){
   if(!Genome::STORE_ALL_NUMERATORS){
     strs<<" - "<<sum_kahan(sumfrq)<<" * "<<cl->getSumFreq_lg()<<" = ";
     strs<<sum_kahan(current)<<"\n";
-  }
 
-  cout<<strs.str();
+    cout<<strs.str();
+  }
 
   return sum_kahan(current);
 }
