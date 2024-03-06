@@ -23,14 +23,12 @@ Class<T>::Class(string id_, int kmer_size, path _savefile)  {
   
   if(kmer_size % 2 == 0){
     long long int  parlindrome = 1;
-    parlindrome<<=(2*(kmer_size/2));
-    sumfreq -= parlindrome;
-    sumfreq /= 2;
+    parlindrome<<=(kmer_size/2);
     sumfreq += parlindrome;
+    sumfreq /= 2;
   }else{
     sumfreq /= 2;
   }
-  
   
 
   id = id_;

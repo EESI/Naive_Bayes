@@ -127,7 +127,7 @@ double Genome::computeClassificationNumerator(Class<int>* cl){
   // uncomment this to include prior
   //current(cl->getNGenomes_lg());
   ostringstream strs;
-  if(!Genome::STORE_ALL_NUMERATORS){
+  if(NB::debug_flag == NB::Debug::LOG_ALL){
     strs<<"("<<cl->getId()<<"): " << sum_kahan(current);
   }
 
@@ -136,14 +136,14 @@ double Genome::computeClassificationNumerator(Class<int>* cl){
 
       sumfrq(freq->second);
       current(freq->second * cl->getFreqCount_lg(freq->first));
-      if(!Genome::STORE_ALL_NUMERATORS){
+      if(NB::debug_flag == NB::Debug::LOG_ALL){
         strs<<" + "<<freq->second<<" * "<<cl->getFreqCount_lg(freq->first);
       }
   }
 
   current(-sum_kahan(sumfrq) * cl->getSumFreq_lg());
   
-  if(!Genome::STORE_ALL_NUMERATORS){
+  if(NB::debug_flag == NB::Debug::LOG_ALL){
     strs<<" - "<<sum_kahan(sumfrq)<<" * "<<cl->getSumFreq_lg()<<" = ";
     strs<<sum_kahan(current)<<"\n";
 
