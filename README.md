@@ -4,7 +4,7 @@ Development version NOT FOR RELEASE, © Drexel University EESI Lab, 2017.
 Maintainer: Haozhe Duan and Alexandru Cristian, alex dot cristian at drexel dot edu  
 Owner: Gail Rosen, gailr at ece dot drexel dot edu  
 
-## Usage (For the more detailed instruction, please read "NBC_manual.pdf"
+## Usage (For the more detailed instruction, please read "NBC_Manual.pdf"
 Pick one of the execution [modes]: train to create or add new sequences to a savefile (the .dat files), or classify to use existing savefiles and classify reads. In both cases, the [source dir] will contain the DNA sequences / reads. The benchmark mode is currently unsupported.
 
 When training, the tags will be expressed by placing each sequence into a subfolder of the source directory, by the name of its respective class. When classifying, make sure the folder only contains ONE file to be classified, and no other files. If there are multiple files, please concatenate them into one file.
