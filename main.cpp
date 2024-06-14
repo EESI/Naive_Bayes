@@ -95,8 +95,8 @@ void trainNB(NB &nb, path srcdir, string extension, unsigned int nbatch,
 void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memory_limit, uint64_t& class_memory_limit, uint64_t& buffer_memory_limit, size_t& total_seq){
 
   const double DYNAMIC_LIST_CAPACITY_CONSTANT = 2;
-  const size_t SEQ_PER_THREAD_INPUT_BUFFER = 200;
-  const size_t SEQ_PER_THREAD_OUTPUT_BUFFER = 10 * SEQ_PER_THREAD_INPUT_BUFFER;
+  const size_t SEQ_PER_THREAD_INPUT_BUFFER = 1000;
+  const size_t SEQ_PER_THREAD_OUTPUT_BUFFER = 1000;
   const int MAX_SEQ_LENGTH = 2000000;
 
   size_t class_avg_bytes = 0;
