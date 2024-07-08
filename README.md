@@ -21,7 +21,7 @@ Generic options:
   -v [ --version ]      Print version information
 
 Allowed options:
-  -s [ --savedir ] arg (=./NB_save)     Path to save folder
+  -s [ --savedir ] arg (=./NB_save)     Path to training data "save" folder (where the training data is to be or was saved)
   -k [ --kmersize ] arg (=6)            Kmer size used in count files
   -m [ --memlimit ] arg (=0)            Cap memory use to a predefined value (MBs).
   -t [ --nthreads ] arg (=1)            Number of threads to spawn, 1 by default
