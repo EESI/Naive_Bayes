@@ -1,0 +1,19 @@
+This guide explains how to interpret the results in the "max log likelihood" file.
+
+The result file is a CSV with three columns: the read ID, the classified class, and its log likelihood.
+
+This example set uses a k-mer length of 9.
+
+For reads that do not contain consecutive "A", "C", "G", or "T" strings equal to or longer than the k-mer length (9 in this case), the classified class is marked as "sequence contains no valid kmers."
+
+Example:
+100225
+../../refSeq_db/basic/download/fna_grouped_by_species_tax/100225/GCF_003391095.1_ASM339109v1_genomic.fna
+
+The above read (the first in the given reads file) does not contain a string of consecutive "A", "C", "G", or "T" that meets or exceeds the k-mer length of 9. Therefore, the result for this read is "100225,sequence contains no valid kmers,".
+
+Note that the output file is named "*max_1.csv". The number after "max" indicates the starting read. For example, "result_max_1.csv" contains results starting from the first read in the input file. "Result_max_101.csv" contains results starting from the 101st read.
+
+
+Command used (30000 MB memory, 12 threads):
+./NB.run classify ./example/reads -s ./example/training_classes -k 9 -m 30000 -t 12 -d ./tmp -o ./example/results
