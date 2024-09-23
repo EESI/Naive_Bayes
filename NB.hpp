@@ -44,7 +44,7 @@ private:
      *
      * This function scans a given directory for a class header file and a set of temporary files. The class header 
      * file should have a name that matches the pattern "<output_class_index>.clshd". The temporary files should 
-     * have names that follow the format "<filter_number>_<sequence_number>.tmp", where <filter_number> matches the 
+     * have names that follow the format "<output_prefix>_<filter_number>_<sequence_number>.tmp", where <filter_number> matches the 
      * specified filter (class group) number, and <sequence_number> is a numeric value indicating the sequence order. 
      * The function collects and sorts the temporary files in ascending order based on their sequence numbers, and 
      * returns the path of the class header file corresponding to the list of temporary files.
@@ -54,15 +54,15 @@ private:
      * @param directory The path of the directory to be scanned.
      * @return The path of the class header file, or an empty string if no such file is found.
      */
-    string getAppendFiles(int filter_number, std::vector<std::string>& file_names, const std::string& directory);
+    string getAppendFiles(int filter_number, vector<string>& file_names, const string& directory);
 
 
     /**
      * @brief Scans a specified directory and groups the files that need to be concatenated based on their naming patterns.
      *
      * This function traverses a given directory searching for files that adhere to specific naming conventions:
-     * 1. Files named "concat_[sequence_number].tmp".
-     * 2. Files named "[class_number]_[sequence_number]_f.[extension]".
+     * 1. Files named "<output_prefix>_concat_[sequence_number].tmp".
+     * 2. Files named "<output_prefix>_[class_number]_[sequence_number]_f.[extension]".
      *
      * These files are categorized into distinct groups based on their group numbers and saved in the provided `file_groups` map.
      * The key of this map signifies the group (sequence) number, and its value is a vector containing the file names from that particular group.
@@ -73,7 +73,7 @@ private:
      * @param file_groups An unordered map where the key is the group number and the value is a vector holding file names from that group.
      * @param directory The directory path where the function will look for the concatenated files.
      */
-    void getConcatFiles(std::unordered_map<size_t, std::vector<std::string>>& file_groups, const std::string& directory);
+    void getConcatFiles(std::unordered_map<size_t, vector<string>>& file_groups, const string& directory);
 
 
     /**
@@ -154,11 +154,11 @@ private:
      * @brief Scans a predefined temporary directory for sequence header files, extracts sequence numbers, and populates a vector with file details.
      *
      * This function iterates over the files in the temp (working) directory searching for files with names 
-     * that match the pattern `<class_number>_<sequence_number>_f.hd`. The function extracts the sequence number from 
+     * that match the pattern `<output_prefix>_<class_number>_<sequence_number>_f.hd`. The function extracts the sequence number from 
      * each matched file name and pairs it with the file's full path. The resulting vector of pairs (`seq_header_files`) 
      * is sorted based on the sequence numbers in ascending order.
      * 
-     * For example, if the directory contains the files `1_10_f.hd`, `1_5_f.hd`, and `2_1_f.hd`, the resulting vector will 
+     * For example, if the directory contains the files `result_1_10_f.hd`, `result_1_5_f.hd`, and `result_2_1_f.hd`, the resulting vector will 
      * contain pairs (5, <full_path_to_1_5_f.hd>), (10, <full_path_to_1_10_f.hd>), and (1, <full_path_to_2_1_f.hd>).
      *
      * @param[out] seq_header_files  A vector that will be populated with pairs. Each pair consists of a sequence number 
@@ -171,11 +171,11 @@ private:
      * @brief Scans the temp (working) directory for `.max` files, extracts their sequence numbers, and populates a vector with file details.
      *
      * This function iterates over the files in a predefined directory (`temp_dir`) searching for files with names 
-     * that match the pattern `<sequence_number>.max`. The function extracts the number 
+     * that match the pattern `<output_prefix>_<sequence_number>.max`. The function extracts the number 
      * from each matched file name and pairs it with the file's full path. The resulting vector of pairs (`max_files`) 
      * is sorted based on the sequence numbers in ascending order.
      * 
-     * For example, if the directory contains the files `5.max`, `10.max`, and `1.max`, the resulting vector will 
+     * For example, if the directory contains the files `result_5.max`, `result_10.max`, and `result_1.max`, the resulting vector will 
      * contain pairs (1, <full_path_to_1.max>), (5, <full_path_to_5.max>), and (10, <full_path_to_10.max>).
      *
      * @param[out] max_files  A vector that will be populated with pairs. Each pair consists of a sequence number 
@@ -223,11 +223,11 @@ private:
      * NB nb_instance;
      * nb_instance.removeFilesWithExtensions([".tmp", ".bak"]);
      * ```
-     * This will remove all files in `temp_dir` that have the `.tmp` or `.bak` extensions.
+     * This will remove all files in `temp_dir` that have the `.tmp` or `.bak` extensions and <output_prefix> as the prefix.
      *
      * @param[in] extensions A vector containing the list of file extensions (including the leading dot) to search for and remove.
      */
-    void removeFilesWithExtensions(const std::vector<std::string>& extensions);
+    void removeFilesWithExtensions(const vector<string>& extensions);
 
 
     /**
@@ -551,7 +551,6 @@ protected:
     bool job_done = false;
     mutex classify_job_lock;
     condition_variable jobUpdateStatus;
-    mutex output_modify;
 
     mutex num_seq_kmer_counted_access;
     condition_variable num_seq_kmer_counted_cv;
@@ -566,6 +565,7 @@ protected:
     size_t write_buffer_height;
 
     string temp_dir;
+    string temp_prefix;
     uint64_t processed_seq_num = 0;
     uint64_t start_seq_index = 0;
     uint64_t output_class_index = 1;
@@ -577,7 +577,10 @@ protected:
     condition_variable output_cv;
 
     condition_variable start_write_cv;
+    mutex start_write_mtx;
     condition_variable write_done_cv;
+    mutex output_modify;
+
     bool finished_writing = true;
 
     int last_written_class_index = -1;
@@ -637,7 +640,7 @@ protected:
      * @param output_prefix A prefix used to name the output CSV file(s).
      * @param sequence_num Used to generate unique output file names.
      */
-    void concatenateCSVByColumns(const std::vector<std::string>& inputFiles, const std::string& output_prefix, const std::size_t& sequence_num);
+    void concatenateCSVByColumns(const vector<string>& inputFiles, const string& output_prefix, const size_t& sequence_num);
 
     /**
      * @brief Appends content (row-wise) from multiple temporary files (binary format) to a single (or multiple) output file(s) (binary format), 
@@ -653,7 +656,7 @@ protected:
      * @param outputFile The prefix of the output file path(s).
      * @param class_header_file Path to a binary file containing the class headers.
      */
-    void fullAppend(std::vector<std::string>& inputFiles, const std::string& outputFile, string class_header);
+    void fullAppend(vector<string>& inputFiles, const string& outputFile, string class_header);
 
     /**
      * @brief Processes a list of input temporary (binary format) files to compare and update maximum values across all input files.
@@ -666,7 +669,7 @@ protected:
      * 
      * @param inputFiles A list of paths to input CSV files to be processed.
      */
-    void maxAppend(std::vector<std::string>& inputFiles);
+    void maxAppend(vector<string>& inputFiles);
 };
 
 #endif /* NB_hpp */

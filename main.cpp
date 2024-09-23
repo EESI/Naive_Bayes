@@ -32,7 +32,7 @@ string tempDir("");
 bool full_result = false;
 
 void trainNB(NB &nb, path srcdir, string extension, unsigned int nbatch,
-             uint64_t memoryLimit){
+             uint64_t memoryLimit) {
               
   unsigned int count = 1, counter = 0;
   uint64_t usedMemory = 0;
@@ -40,20 +40,20 @@ void trainNB(NB &nb, path srcdir, string extension, unsigned int nbatch,
     Diskutil::getTrainingGenomePaths(srcdir, extension);
   string cls_s="-1"; Class<int> *current = NULL;
   for(vector<tuple<string, path, path> >::iterator iter = result.begin();
-      iter != result.end(); iter++, counter++){
+      iter != result.end(); iter++, counter++) {
         unsigned int savefileSize = 0;
         bool loadedNewClass = false;
         
         // FASTA files not needed for training, so just add up the kmr file size
         size_t genomeSize = Diskutil::getFileSize(get<1>(*iter));
 
-        if(cls_s.compare(get<0>(*iter)) != 0){
+        if (cls_s.compare(get<0>(*iter)) != 0) {
 
           cls_s = get<0>(*iter);
 
           current = nb.getClass(cls_s);
 
-          if(current == NULL){
+          if (current == NULL) {
             path save_file = path(nb.getSavedir().native()
                                   + path::preferred_separator
                                   + cls_s + "-save.dat");
@@ -68,7 +68,7 @@ void trainNB(NB &nb, path srcdir, string extension, unsigned int nbatch,
           loadedNewClass = true;
         }
 
-        if(memoryLimit != 0 && usedMemory + genomeSize + savefileSize> memoryLimit){
+        if (memoryLimit != 0 && usedMemory + genomeSize + savefileSize> memoryLimit) {
           nb.processClassUpdates();
           usedMemory = 0;
           cls_s = "-1"; // This will force the next iteration to add this savefile's size again
@@ -76,13 +76,13 @@ void trainNB(NB &nb, path srcdir, string extension, unsigned int nbatch,
 
         Genome *genome = new Genome(get<1>(*iter), get<2>(*iter));
         current->queueGenome(genome);
-        if(loadedNewClass){
+        if (loadedNewClass) {
           nb.addClassToUpdateQueue(current);
           usedMemory += savefileSize;
         }
         usedMemory += genomeSize;
 
-        if(nbatch != 0 && counter % nbatch == 0){
+        if (nbatch != 0 && counter % nbatch == 0) {
           nb.processClassUpdates();
         }
         
@@ -92,7 +92,7 @@ void trainNB(NB &nb, path srcdir, string extension, unsigned int nbatch,
 }
 
 // Find the optimal memory distribution for the memory allocation for loading classes and sequences.
-void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memory_limit, uint64_t& class_memory_limit, uint64_t& buffer_memory_limit, size_t& total_seq){
+void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memory_limit, uint64_t& class_memory_limit, uint64_t& buffer_memory_limit, size_t& total_seq) {
 
   const double DYNAMIC_LIST_CAPACITY_CONSTANT = 2;
   const size_t SEQ_PER_THREAD_INPUT_BUFFER = 1000;
@@ -106,14 +106,14 @@ void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memo
   size_t filesize = Diskutil::getFileSize(input_file);
   size_t estimate_seq_avg_length = filesize / total_seq;
 
-  if(estimate_seq_avg_length > 1.5 * MAX_SEQ_LENGTH){
+  if (estimate_seq_avg_length > 1.5 * MAX_SEQ_LENGTH) {
     cout << "Error: estimated average sequence length is larger than the max 2MB length." << endl;
     exit(1);
   }
 
   size_t num_classes_load = 0;
   buffer_memory_limit = (estimate_seq_avg_length * SEQ_PER_THREAD_INPUT_BUFFER * nb.getThreadNumber());
-  if(buffer_memory_limit > filesize){
+  if (buffer_memory_limit > filesize) {
     buffer_memory_limit = filesize;
   }
 
@@ -122,12 +122,12 @@ void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memo
   
   remaining_memory -= substract_part;
 
-  if(remaining_memory > total_memory_limit){
+  if (remaining_memory > total_memory_limit) {
     cout << "Error: not enough memory. Memory needs to be greater than: " << substract_part << " bytes." << endl;
     exit(1);
   }
 
-  if(full_result){
+  if (full_result) {
     num_classes_load = remaining_memory / 
             (sizeof(double) * SEQ_PER_THREAD_OUTPUT_BUFFER * nb.getThreadNumber() + class_avg_bytes);
   }else{
@@ -136,7 +136,7 @@ void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memo
 
   class_memory_limit = num_classes_load * class_avg_bytes;
   
-  if(class_memory_limit < class_max_bytes){
+  if (class_memory_limit < class_max_bytes) {
     cout << "Error: Not enough memory to load the largest class: " << class_max_bytes << " bytes." << endl;
     exit(1);
   }
@@ -148,14 +148,14 @@ void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memo
   const int SINGLE_CELL_LENGTH = 10;
   size_t out_file_size = 0;
 
-  if(total_seq > max_row){
+  if (total_seq > max_row) {
     out_file_size = SINGLE_CELL_LENGTH * max_row * sizeof(char);
   }else{
     out_file_size = SINGLE_CELL_LENGTH * total_seq * sizeof(char);
   }
   
-  if(full_result){
-    if(num_classes_load > max_col){
+  if (full_result) {
+    if (num_classes_load > max_col) {
       out_file_size *= max_col;
     }else{
       out_file_size *= num_classes_load;
@@ -164,23 +164,23 @@ void allocateMemoryDistribution(NB& nb, string& input_file, uint64_t& total_memo
     out_file_size *= 2;
   }
 
-  if(out_file_size > total_memory_limit){
+  if (out_file_size > total_memory_limit) {
     cout << "Error: not enough memory to load output file into memory. Please increase memory limit. Estimated output file size: " << out_file_size << endl;
     exit(1);
   }
 }
 
 void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
-                uint64_t &memory_limit, string output_file, const bool& full_result, const string& temp_dir){
+                uint64_t &memory_limit, string output_file, const bool& full_result, const string& temp_dir) {
 
   if (!exists(temp_dir)) {
     if (!create_directory(temp_dir)) {
-      std::cout << "Failed To Create Temporary Directory: " << temp_dir << std::endl;
+      cout << "Failed To Create Temporary Directory: " << temp_dir << endl;
       exit(1);
     }
   }
 
-  if(nb.getThreadNumber() < 1){
+  if (nb.getThreadNumber() < 1) {
     cout<<"Error: at least 2 threads are required for classification.\n";
     exit(1);
   }
@@ -196,16 +196,16 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
   uint64_t class_memory_limit, buffer_memory_limit = 0;
   allocateMemoryDistribution(nb, inputFile, memory_limit, class_memory_limit, buffer_memory_limit, total_seq);
   
-  std::vector<char> buffer(buffer_memory_limit, 0);
+  vector<char> buffer(buffer_memory_limit, 0);
   
   thread writer(&NB::writeToCSV, &nb);
 
-  while(!nb.hasLoadedAll()){
+  while(!nb.hasLoadedAll()) {
     std::ifstream file(inputFile);
 
     // Check if the file is opened successfully.
     if (!file.is_open()) {
-      std::cout << "Failed to open file." << std::endl;
+      cout << "Failed to open file." << endl;
       exit(1);
     }
 
@@ -274,7 +274,9 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
     }
 
     file.close();
+
     nb.joinClassifyThreads();
+
     nb.unloadClasses();
 
   }
@@ -282,7 +284,25 @@ void classifyNB(NB &nb, path srcdir, string &extension, unsigned int &nbatch,
   writer.join();
 }
 
-int main(int argc, char* argv[]){
+unsigned int get_thread_count() {
+    if (const char* slurm_cpus = std::getenv("SLURM_CPUS_PER_TASK")) {
+        return std::stoi(slurm_cpus);
+    }
+    if (const char* pbs_np = std::getenv("PBS_NP")) {
+        return std::stoi(pbs_np);
+    }
+    if (const char* omp_threads = std::getenv("OMP_NUM_THREADS")) {
+        return std::stoi(omp_threads);
+    }
+    if (const char* lsf_procs = std::getenv("LSB_DJOB_NUMPROC")) {
+        return std::stoi(lsf_procs);
+    }
+
+    unsigned int hardware_threads = std::thread::hardware_concurrency();
+    return hardware_threads;
+}
+
+int main(int argc, char* argv[]) {
   unsigned int nbatch, nthreads, kmersize;
   uint64_t memLimit;
   string kmer_ext, srcdir, mode, savedir;
@@ -339,13 +359,13 @@ all at once by default")
     opt_map);
   p_opt::notify(opt_map);
 
-  if(opt_map.count("version")){
+  if (opt_map.count("version")) {
     cout<<PROG_VER<<"\n";
     return 1;
   }
 
-  if(opt_map.count("help") || opt_map.count("mode") == 0
-     || opt_map.count("srcdir") == 0){
+  if (opt_map.count("help") || opt_map.count("mode") == 0
+     || opt_map.count("srcdir") == 0) {
     cout<<usageMsg<<"\n"<<generic<<"\n"<<visible<<"\n";
     return 1;
   }
@@ -364,7 +384,12 @@ all at once by default")
 
   Genome::STORE_ALL_NUMERATORS = print_posterior;
 
-  if(mode.compare("train") == 0){
+  unsigned int sys_thread = get_thread_count();
+  if (nthreads > (sys_thread*2)) {
+    cout<<"Warning: " << nthreads << " threads requested, but only " << sys_thread << " threads available." << endl;
+  }
+
+  if (mode.compare("train") == 0) {
     cout<<"Train mode.\n";
     nb.loadTrain();
     trainNB(nb, path(srcdir), kmer_ext, nbatch, memLimit);
@@ -374,12 +399,12 @@ all at once by default")
         outputFile << nb.getKmerSize();
         outputFile.close();
     } else {
-        std::cout << "Failed to open the file for writing." << std::endl;
+        cout << "Failed to open the file for writing." << endl;
     }
 
     cout<<"Training complete.\n";
 
-  }else if(mode.compare("classify") == 0){
+  }else if (mode.compare("classify") == 0) {
 
     cout<<"Classify mode.\n";
   
@@ -387,17 +412,17 @@ all at once by default")
     if (inputFile.is_open()) {
         string firstElement;
         if (inputFile >> firstElement) {
-            if (firstElement != to_string(nb.getKmerSize())){
-                std::cout << "The kmer number used for training (" << firstElement << ") is different from the one used for classification (" << nb.getKmerSize() << ")." << std::endl;
+            if (firstElement != to_string(nb.getKmerSize())) {
+                cout << "The kmer number used for training (" << firstElement << ") is different from the one used for classification (" << nb.getKmerSize() << ")." << endl;
                 exit(1);
             }
         } else {
-            std::cout << "Failed to extract the kmer number used for training." << std::endl;
+            cout << "Failed to extract the kmer number used for training." << endl;
             exit(1);
         }
         inputFile.close();
     } else {
-        std::cout << "Failed to extract the kmer number used for training." << std::endl;
+        cout << "Failed to extract the kmer number used for training." << endl;
         exit(1);
     }
 

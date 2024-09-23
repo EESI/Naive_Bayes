@@ -21,7 +21,7 @@ Class<T>::Class(string id_, int kmer_size, path _savefile)  {
   sumfreq<<=2*kmer_size;
   
   
-  if(kmer_size % 2 == 0){
+  if (kmer_size % 2 == 0) {
     long long int  parlindrome = 1;
     parlindrome<<=(kmer_size/2);
     sumfreq += parlindrome;
@@ -39,19 +39,19 @@ Class<T>::Class(string id_, int kmer_size, path _savefile)  {
 template <class T>
 Class<T>::~Class() {
   for(vector<Genome*>::iterator iter = genomes.begin(); iter != genomes.end();
-      iter++){
+      iter++) {
         delete *iter;
       }
 }
 
 template <class T>
-void Class<T>::queueGenome(Genome* genome){
+void Class<T>::queueGenome(Genome* genome) {
   queuedGenomes.push(genome);
 }
 
 template <class T>
-void Class<T>::addGenomesInQueue(){
-  while(!queuedGenomes.empty()){
+void Class<T>::addGenomesInQueue() {
+  while(!queuedGenomes.empty()) {
     Genome* current = queuedGenomes.front();
     addGenome(current);
     current->unload();
@@ -60,19 +60,19 @@ void Class<T>::addGenomesInQueue(){
 }
 
 template <class T>
-double Class<T>::logAdd(vector<double> exponents){
+double Class<T>::logAdd(vector<double> exponents) {
   double result = 0, max;
   int maxId = -1;
   for(vector<double>::iterator num=exponents.begin();
-    num != exponents.end(); num++){
-    if(maxId == -1 || max < *num){
+    num != exponents.end(); num++) {
+    if (maxId == -1 || max < *num) {
       maxId = 0;
       max = *num;
     }
   }
 
   for(vector<double>::iterator num=exponents.begin();
-    num != exponents.end(); num++){
+    num != exponents.end(); num++) {
     result += exp(*num - max);
   }
   result = max + log(result);
@@ -81,8 +81,8 @@ double Class<T>::logAdd(vector<double> exponents){
 }
 
 template <class T>
-void Class<T>::addNGenomes(int ngenomes_){
-  if(ngenomes_lg.second){
+void Class<T>::addNGenomes(int ngenomes_) {
+  if (ngenomes_lg.second) {
     ngenomes = 0;
     ngenomes_lg.second = false;
   }
@@ -90,8 +90,8 @@ void Class<T>::addNGenomes(int ngenomes_){
 }
 
 template <class T>
-void Class<T>::addSumfreq(long long int sumfreq_){
-  if(sumfreq_lg.second){
+void Class<T>::addSumfreq(long long int sumfreq_) {
+  if (sumfreq_lg.second) {
     sumfreq = 0;
     sumfreq_lg.second = false;
   }
@@ -99,7 +99,7 @@ void Class<T>::addSumfreq(long long int sumfreq_){
 }
 
 template <class T>
-size_t Class<T>::getEstimatedClassBytes(size_t& num_elements){
+size_t Class<T>::getEstimatedClassBytes(size_t& num_elements) {
   size_t key_memory = num_elements * sizeof(T);
   size_t value_memory = num_elements * sizeof(double_wflag);
   size_t bucket_memory = (num_elements * 1.5) * sizeof(std::list<std::pair<T, double_wflag>>);
@@ -109,18 +109,18 @@ size_t Class<T>::getEstimatedClassBytes(size_t& num_elements){
 }
 
 template <class T>
-size_t Class<T>::getMapElementSize(){
+size_t Class<T>::getMapElementSize() {
   return sizeof(T) + sizeof(double);
 }
 
 template <class T>
-void Class<T>::addFreqCount(T feature_, int count_){
-  if(getFreqcnt().find(feature_) == getFreqcnt().end()){
+void Class<T>::addFreqCount(T feature_, int count_) {
+  if (getFreqcnt().find(feature_) == getFreqcnt().end()) {
     getFreqcnt()[feature_] = count_;
   }else{
     getFreqcnt()[feature_] += count_;
   }
-  if(getFreqcnt_lg().find(feature_) == getFreqcnt_lg().end()){
+  if (getFreqcnt_lg().find(feature_) == getFreqcnt_lg().end()) {
       getFreqcnt_lg()[feature_] = make_pair(0 ,false);
   }else{
       getFreqcnt_lg()[feature_].second = false;
@@ -128,7 +128,7 @@ void Class<T>::addFreqCount(T feature_, int count_){
 }
 
 template <class T>
-void Class<T>::addSumfreq_lg(double sumfreq_){
+void Class<T>::addSumfreq_lg(double sumfreq_) {
   vector<double> items;
   items.push_back(getSumFreq_lg());
   items.push_back(sumfreq_);
@@ -136,7 +136,7 @@ void Class<T>::addSumfreq_lg(double sumfreq_){
 }
 
 template <class T>
-void Class<T>::addNGenomes_lg(double ngenomes_){
+void Class<T>::addNGenomes_lg(double ngenomes_) {
   vector<double> items;
   items.push_back(getNGenomes_lg());
   items.push_back(ngenomes_);
@@ -144,7 +144,7 @@ void Class<T>::addNGenomes_lg(double ngenomes_){
 }
 
 template <class T>
-void Class<T>::addFreqCount_lg(T feature_, double count_){
+void Class<T>::addFreqCount_lg(T feature_, double count_) {
   vector<double> items;
   items.push_back(getFreqCount_lg(feature_));
   items.push_back(count_);
@@ -152,13 +152,13 @@ void Class<T>::addFreqCount_lg(T feature_, double count_){
 }
 
 template <class T>
-path Class<T>::getSavefilePath(){
+path Class<T>::getSavefilePath() {
   return savefile;
 }
 
 template <class T>
-double Class<T>::getNGenomes_lg(){
-  if(!ngenomes_lg.second){
+double Class<T>::getNGenomes_lg() {
+  if (!ngenomes_lg.second) {
     vector<double> terms;
     terms.push_back(ngenomes_lg.first);
     terms.push_back(log(ngenomes));
@@ -170,11 +170,11 @@ double Class<T>::getNGenomes_lg(){
 }
 
 template <class T>
-double Class<T>::getFreqCount_lg(T feature_){
-  if(!existsInFreqCount(feature_)){
+double Class<T>::getFreqCount_lg(T feature_) {
+  if (!existsInFreqCount(feature_)) {
     return 0;
   }else{
-    if(!getFreqcnt_lg()[feature_].second){
+    if (!getFreqcnt_lg()[feature_].second) {
       vector<double> terms;
       terms.push_back(getFreqcnt_lg()[feature_].first);
       terms.push_back(log(getFreqcnt()[feature_]));
@@ -187,8 +187,8 @@ double Class<T>::getFreqCount_lg(T feature_){
 }
 
 template <class T>
-double Class<T>::getSumFreq_lg(){
-  if(!sumfreq_lg.second){
+double Class<T>::getSumFreq_lg() {
+  if (!sumfreq_lg.second) {
     vector<double> terms;
     terms.push_back(sumfreq_lg.first);
     terms.push_back(log(sumfreq));
@@ -200,20 +200,20 @@ double Class<T>::getSumFreq_lg(){
 }
 
 template <class T>
-bool Class<T>::existsInFreqCount(T feature_){
+bool Class<T>::existsInFreqCount(T feature_) {
   return (getFreqcnt().find(feature_) != getFreqcnt().end())
     || (getFreqcnt_lg().find(feature_) != getFreqcnt_lg().end());
 }
 
 template <class T>
-string Class<T>::getId(){
+string Class<T>::getId() {
   return id;
 }
 
 template <class T>
-void Class<T>::addGenome(Genome* genome, double confidence_lg){
+void Class<T>::addGenome(Genome* genome, double confidence_lg) {
 
-  if(confidence_lg == 0.0)
+  if (confidence_lg == 0.0)
     addNGenomes(1);
   else
     addNGenomes_lg(confidence_lg + log(1));
@@ -221,18 +221,18 @@ void Class<T>::addGenome(Genome* genome, double confidence_lg){
   int sum=0, new_features=0;
   unordered_map<int, int> freqs = genome->getKmerCounts();
   for(unordered_map<int, int>::iterator iter = freqs.begin();
-    iter != freqs.end(); iter++){
+    iter != freqs.end(); iter++) {
       sum += iter->second;
-      if(existsInFreqCount(iter->first)){
+      if (existsInFreqCount(iter->first)) {
         new_features++;
       }
-      if(confidence_lg == 0.0)
+      if (confidence_lg == 0.0)
         addFreqCount(iter->first, iter->second);
       else
         addFreqCount_lg(iter->first, confidence_lg + log(iter->second));
     }
 
-  if(confidence_lg == 0.0)
+  if (confidence_lg == 0.0)
     addSumfreq(sum);
   else
     addSumfreq_lg(confidence_lg + log(sum));
@@ -242,16 +242,16 @@ void Class<T>::addGenome(Genome* genome, double confidence_lg){
 }
 
 template <class T>
-void Class<T>::computeBatchNumerators(vector<Genome*> genomes){
+void Class<T>::computeBatchNumerators(vector<Genome*> genomes) {
   for(vector<Genome*>::iterator iter = genomes.begin(); iter != genomes.end();
-    iter++){
+    iter++) {
       (*iter)->computeClassificationNumerator(this);
   }
 }
 
 template <class T>
-void Class<T>::load(path source_path){
-  if(isLoaded){
+void Class<T>::load(path source_path) {
+  if (isLoaded) {
     return;
   }else{
     isLoaded = true;
@@ -261,7 +261,7 @@ void Class<T>::load(path source_path){
   freqcnt = new unordered_map<T, int>;
   
   std::ifstream in(source_path.native());
-  if(in.good()){
+  if (in.good()) {
     deserialize(in);
   }
 
@@ -269,7 +269,7 @@ void Class<T>::load(path source_path){
 }
 
 template <class T>
-void Class<T>::save(path destination_path){
+void Class<T>::save(path destination_path) {
   std::ofstream out(destination_path.native());
   // out<<serialize();
   serialize(out);
@@ -277,17 +277,17 @@ void Class<T>::save(path destination_path){
 }
 
 template <class T>
-void Class<T>::save(){
+void Class<T>::save() {
   save(savefile);
 }
 
 template <class T>
-void Class<T>::load(){
+void Class<T>::load() {
   load(savefile);
 }
 
 template <class T>
-void Class<T>::unload(){
+void Class<T>::unload() {
 
   freqcnt->clear();
   std::unordered_map<T, int>().swap(*freqcnt);
@@ -302,22 +302,22 @@ void Class<T>::unload(){
 }
 
 template <class T>
-bool Class<T>::loaded(){
+bool Class<T>::loaded() {
   return isLoaded;
 }
 
 template <class T>
-unordered_map<T, pair<double, bool> >& Class<T>::getFreqcnt_lg(){
+unordered_map<T, pair<double, bool> >& Class<T>::getFreqcnt_lg() {
   return *freqcnt_lg;
 }
 
 template <class T>
-unordered_map<T, int>& Class<T>::getFreqcnt(){
+unordered_map<T, int>& Class<T>::getFreqcnt() {
   return *freqcnt;
 }
 
 template <class T>
-size_t Class<T>::getClassSizeInBytes(){
+size_t Class<T>::getClassSizeInBytes() {
   return (*freqcnt_lg).size() * (sizeof(T) + sizeof(double_wflag)) + sizeof(Class<T>);
 }
 

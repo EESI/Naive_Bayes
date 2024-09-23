@@ -11,37 +11,37 @@
 const string Diskutil::SEQUENCE_FILE_EXT = ".fasta";
 const string Diskutil::SAVE_FILE_EXT = ".dat";
 
-vector<path> Diskutil::getItemsInDir(path parent){
+vector<path> Diskutil::getItemsInDir(path parent) {
   vector<path> result;
 
-  if(!exists(parent) || !is_directory(parent)){
+  if (!exists(parent) || !is_directory(parent)) {
     cout << "Could not open directory path: "<< parent.native() <<"\n";
     exit(1);
   }
   directory_iterator iter(parent);
-  for(;iter != directory_iterator(); iter++){
+  for(;iter != directory_iterator(); iter++) {
     result.push_back(iter->path());
   }
   return result;
 }
 
-size_t Diskutil::getFileSize(path file){
-  if(!exists(file)){
+size_t Diskutil::getFileSize(path file) {
+  if (!exists(file)) {
     return 0;
   }
   
   return file_size(file);
 }
 
-bool Diskutil::isFolderValid(path dir){
-  if(dir.native().compare(".") == 0 || dir.native().compare("..") == 0){
+bool Diskutil::isFolderValid(path dir) {
+  if (dir.native().compare(".") == 0 || dir.native().compare("..") == 0) {
     return false;
   }
   return exists(dir) && is_directory(dir);
 }
 
-bool Diskutil::hasFileExtension(path dir, string ext){
-  if(exists(dir) && is_regular_file(dir)){
+bool Diskutil::hasFileExtension(path dir, string ext) {
+  if (exists(dir) && is_regular_file(dir)) {
     return dir.has_extension() && (dir.extension().compare(ext) == 0);
   }else{
     return false;
@@ -52,7 +52,7 @@ void Diskutil::countKmer(unordered_map<int, int>& my_map, int kmer_size, const v
   
   const int k = 2; // number of bits per base
 
-  if(end - start + 1 < kmer_size) return;
+  if (end - start + 1 < kmer_size) return;
 
   for (uint64_t i = start; i <= end - kmer_size + 1; i++) {
     
@@ -132,12 +132,12 @@ void Diskutil::countKmer(unordered_map<int, int>& my_map, int kmer_size, const v
 
 
 vector<tuple<string, path, path> >
-  Diskutil::getTrainingGenomePaths(path source_folder, string extension){
+  Diskutil::getTrainingGenomePaths(path source_folder, string extension) {
     vector<tuple<string, path, path> > result;
     vector<path> class_paths = getItemsInDir(source_folder);
     for(vector<path>::iterator iter=class_paths.begin();
-        iter != class_paths.end(); iter++){
-      if(!isFolderValid(*iter)){
+        iter != class_paths.end(); iter++) {
+      if (!isFolderValid(*iter)) {
         continue;
       }
 
@@ -145,14 +145,14 @@ vector<tuple<string, path, path> >
       string cls_s;
       try{
         cls_s = cls.substr(cls.rfind(path::preferred_separator)+1);
-      }catch(invalid_argument){
+      }catch(invalid_argument) {
         continue;
       }
 
       vector<path> genomes = getItemsInDir(*iter);
       for(vector<path>::iterator gen=genomes.begin();
-          gen != genomes.end(); gen++){
-        if(!hasFileExtension(*gen, extension)){
+          gen != genomes.end(); gen++) {
+        if (!hasFileExtension(*gen, extension)) {
           continue;
         }
 
